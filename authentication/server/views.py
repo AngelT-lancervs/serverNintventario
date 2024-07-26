@@ -19,7 +19,7 @@ from rest_framework.authentication import TokenAuthentication
 
 
 UPLOAD_DIR = 'uploads'
-PYTHON_SCRIPT_PATH = '../src/scripts/excel_wirtter.py'
+PYTHON_SCRIPT_PATH = '/scripts/excel_wirtter.py'
 UPLOAD_URL = 'http://192.168.1.3:8000/upload-excel/'
 
 @api_view(['POST'])
