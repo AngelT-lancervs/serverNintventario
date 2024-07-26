@@ -29,6 +29,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '192.168.1.3',
+    'nintventario-e2c3dcdyg5edfhdh.eastus-01.azurewebsites.net'
 ]
 
 
@@ -64,7 +65,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.100.70:8000",
     "http://tu-flutter-app-url.com",
     'http://192.168.1.3:8000',
+    'https://nintventario-e2c3dcdyg5edfhdh.eastus-01.azurewebsites.net'
 ]
+
 CORS_ALLOW_METHODS = [
     "POST",
     "GET"
