@@ -7,7 +7,7 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 file_path = sys.argv[1]
-json_url = 'http://192.168.1.3:8000/get-json'
+json_url = 'https://servernintventario.onrender.com/get-json'
 
 print(f"Solicitando JSON desde: {json_url}")
 
