@@ -173,18 +173,22 @@ def upload_pdf(request):
     try:
         output_file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
 
+        # Ejecutar el script de Python para generar el PDF
         result = subprocess.run(
             ['python', PYTHON_SCRIPT_PATH_PDF, output_file_path],
             capture_output=True, text=True
         )
 
+        # Verificar si el script se ejecutó correctamente
         if result.returncode != 0:
             return JsonResponse({"error": f"Script error: {result.stderr}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        # Verificar si el archivo PDF fue generado
         if os.path.exists(output_file_path):
             with open(output_file_path, 'rb') as f:
                 file_data = f.read()
 
+            # Subir el archivo al servidor
             upload_response = requests.post(UPLOAD_URL, files={'file': file_data})
             upload_response.raise_for_status()  
 
@@ -199,7 +203,6 @@ def upload_pdf(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['GET'])
 def download_pdf(request):
