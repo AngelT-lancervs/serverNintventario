@@ -20,6 +20,7 @@ from rest_framework.authentication import TokenAuthentication
 
 UPLOAD_DIR = 'uploads'
 PYTHON_SCRIPT_PATH = '/scripts/excel_wirtter.py'
+PYTHON_SCRIPT_PATH_PDF = '/scripts/report_pdf_generator.py'
 UPLOAD_URL = 'https://servernintventario.onrender.com/upload-excel/'
 
 @api_view(['POST'])
@@ -164,3 +165,56 @@ def download_excel(request):
         return FileResponse(open(file_path, 'rb'), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename='uploaded_file.xlsx')
     else:
         return HttpResponseNotFound("File not found")
+    
+@api_view(['POST'])
+def upload_pdf(request):
+    request_id = str(uuid.uuid4())  # Generar un ID único para esta solicitud
+    logger.debug(f"Procesando solicitud {request_id}")
+    try:
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR)
+
+        output_file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
+        logger.debug(f"Ejecutando script de Python para solicitud {request_id}...")
+
+        result = subprocess.run(
+            ['python', PYTHON_SCRIPT_PATH_PDF, output_file_path],
+            capture_output=True, text=True
+        )
+        logger.debug(f"Resultado del script para solicitud {request_id}: {result.stdout}")
+        logger.error(f"Errores del script para solicitud {request_id}: {result.stderr}")
+
+        if result.returncode != 0:
+            logger.error(f"Error en el script para solicitud {request_id}: {result.stderr}")
+            return JsonResponse({"error": f"Script error: {result.stderr}"}, status=500)
+
+        logger.debug(f"Ruta del archivo generado para solicitud {request_id}: {output_file_path}")
+
+        with open(output_file_path, 'rb') as f:
+            file_data = f.read()
+
+        upload_response = requests.post(UPLOAD_URL, files={'file': file_data})
+        upload_response.raise_for_status()  
+        if upload_response.status_code == 200:
+            logger.debug(f"Archivo subido exitosamente para solicitud {request_id}!")
+            response = HttpResponse(file_data, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+            return response
+        else:
+            logger.error(f"Fallo al subir el archivo para solicitud {request_id}. Código de estado: {upload_response.status_code}")
+            return JsonResponse({"error": f"Upload failed with status {upload_response.status_code}"}, status=500)
+
+    except Exception as e:
+        logger.exception(f"Error en el endpoint upload_pdf para solicitud {request_id}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@api_view(['GET'])
+def download_pdf(request):
+    file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
+    
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, 'rb'), content_type='application/pdf', filename='generated_pdf.pdf')
+    else:
+        return HttpResponseNotFound("File not found")
+    
