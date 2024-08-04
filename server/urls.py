@@ -29,5 +29,4 @@ urlpatterns = [
     re_path('download-excel/', views.download_excel, name='download_excel'),
     re_path('upload-pdf/', views.upload_pdf, name='upload_pdf'),
     re_path('download-pdf/', views.download_pdf, name='download_pdf'),
-    re_path('upload-pdf-handler/', views.upload_pdf_handler, name='upload_pdf_handler'),
 ]
