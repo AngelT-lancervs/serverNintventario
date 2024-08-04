@@ -23,6 +23,8 @@ PYTHON_SCRIPT_PATH = '/scripts/excel_wirtter.py'
 PYTHON_SCRIPT_PATH_PDF = 'scripts/report_pdf_generator.py' 
 UPLOAD_URL = 'https://servernintventario.onrender.com/upload-excel/'
 UPLOAD_URL_PDF='https://servernintventario.onrender.com/upload-pdf/'
+UPLOAD_URL_PDF_HANDLER = 'https://servernintventario.onrender.com/upload-pdf-handler/'
+
 
 @api_view(['POST'])
 def login(request):
@@ -168,11 +170,17 @@ def download_excel(request):
         return HttpResponseNotFound("File not found")
     
 
+
 @api_view(['POST'])
 def upload_pdf(request):
     request_id = str(uuid.uuid4())  # Generar un ID único para esta solicitud
     try:
+        # Crear el directorio si no existe
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR)
+        
         output_file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
+        
         # Ejecutar el script de Python para generar el PDF
         result = subprocess.run(
             ['python', PYTHON_SCRIPT_PATH_PDF, output_file_path],
@@ -191,9 +199,9 @@ def upload_pdf(request):
             with open(output_file_path, 'rb') as f:
                 file_data = f.read()
 
-            # Subir el archivo al servidor
-            upload_response = requests.post(UPLOAD_URL_PDF, files={'file': file_data})
-            upload_response.raise_for_status()  
+            # Subir el archivo al servidor en un endpoint diferente
+            upload_response = requests.post(UPLOAD_URL_PDF_HANDLER, files={'file': file_data})
+            upload_response.raise_for_status()
 
             if upload_response.status_code == 200:
                 response = HttpResponse(file_data, content_type='application/pdf')
@@ -217,6 +225,15 @@ def upload_pdf(request):
             "exception": str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['POST'])
+def upload_pdf_handler(request):
+    try:
+        # Aquí se maneja la subida del archivo
+        file = request.FILES['file']
+        # Procesar y almacenar el archivo según sea necesario
+        return JsonResponse({"message": "Archivo PDF subido con éxito"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
