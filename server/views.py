@@ -215,8 +215,9 @@ def upload_pdf(request):
     except Exception as e:
         # Captura cualquier excepción inesperada y proporciona detalles de la traza
         tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+        logging.error(f"Excepción inesperada: {''.join(tb_str)}")
         return JsonResponse({
-            "error": "Ocurrió un error inesperadoYAA",
+            "error": "Ocurrió un error inesperado",
             "exception": str(e),  # Mensaje de la excepción
             "traceback": ''.join(tb_str),  # Traza completa del error
             "request_id": request_id
