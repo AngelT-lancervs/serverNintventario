@@ -207,7 +207,12 @@ def upload_pdf(request):
 @api_view(['GET'])
 def download_pdf(request):
     file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
-    return HttpResponseNotFound(file_path)
+    
+    # Verifica si el directorio de carga existe
+    if not os.path.exists(UPLOAD_DIR):
+        return HttpResponseNotFound("Upload directory not found")
+    
+    # Verifica si el archivo existe
     if os.path.exists(file_path):
         return FileResponse(open(file_path, 'rb'), content_type='application/pdf', filename='generated_pdf.pdf')
     else:
