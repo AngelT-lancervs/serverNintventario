@@ -210,7 +210,7 @@ def upload_pdf(request):
             return JsonResponse({"error": f"Upload failed with status {upload_response.status_code}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     except Exception as e:
-        logger.exception(f"Error en el endpoint upload_pdf para solicitud {request_id}: {e}")
+        logger.exception(f"Error en el endpoint upload_pdf para la solicitud {request_id}: {e}")
         return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
