@@ -22,6 +22,7 @@ UPLOAD_DIR = 'uploads'
 PYTHON_SCRIPT_PATH = '/scripts/excel_wirtter.py'
 PYTHON_SCRIPT_PATH_PDF = 'scripts/report_pdf_generator.py' 
 UPLOAD_URL = 'https://servernintventario.onrender.com/upload-excel/'
+UPLOAD_URL_PDF='https://servernintventario.onrender.com/upload-pdf/'
 
 @api_view(['POST'])
 def login(request):
@@ -172,7 +173,6 @@ def upload_pdf(request):
     request_id = str(uuid.uuid4())  # Generar un ID único para esta solicitud
     try:
         output_file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
-
         # Ejecutar el script de Python para generar el PDF
         result = subprocess.run(
             ['python', PYTHON_SCRIPT_PATH_PDF, output_file_path],
@@ -192,7 +192,7 @@ def upload_pdf(request):
                 file_data = f.read()
 
             # Subir el archivo al servidor
-            upload_response = requests.post(UPLOAD_URL, files={'file': file_data})
+            upload_response = requests.post(UPLOAD_URL_PDF, files={'file': file_data})
             upload_response.raise_for_status()  
 
             if upload_response.status_code == 200:
