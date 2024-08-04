@@ -215,6 +215,8 @@ def upload_pdf(request):
         return JsonResponse({
             "error": "Ocurrió un error inesperado",
             "exception": str(e)
+            "error_code": error_code,  # Código de estado si está disponible
+            "request_id": request_id
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
