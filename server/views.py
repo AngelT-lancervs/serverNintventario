@@ -182,13 +182,18 @@ def upload_pdf(request):
             capture_output=True, text=True
         )
         logger.debug(f"Resultado del script para solicitud {request_id}: {result.stdout}")
-        logger.error(f"Errores del script para solicitud {request_id}: {result.stderr}")
+        if result.stderr:
+            logger.error(f"Errores del script para solicitud {request_id}: {result.stderr}")
 
         if result.returncode != 0:
             logger.error(f"Error en el script para solicitud {request_id}: {result.stderr}")
-            return JsonResponse({"error": f"Script error: {result.stderr}"}, status=500)
+            return JsonResponse({"error": f"Script error: {result.stderr}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         logger.debug(f"Ruta del archivo generado para solicitud {request_id}: {output_file_path}")
+
+        if not os.path.exists(output_file_path):
+            logger.error(f"No se encontró el archivo PDF generado en: {output_file_path}")
+            return JsonResponse({"error": "PDF file not found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         with open(output_file_path, 'rb') as f:
             file_data = f.read()
@@ -202,19 +207,25 @@ def upload_pdf(request):
             return response
         else:
             logger.error(f"Fallo al subir el archivo para solicitud {request_id}. Código de estado: {upload_response.status_code}")
-            return JsonResponse({"error": f"Upload failed with status {upload_response.status_code}"}, status=500)
+            return JsonResponse({"error": f"Upload failed with status {upload_response.status_code}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     except Exception as e:
-        logger.exception(f"Error en el endpoint upload_pdf para solicitud {request_id}")
-        return JsonResponse({"error": str(e)}, status=500)
+        logger.exception(f"Error en el endpoint upload_pdf para solicitud {request_id}: {e}")
+        return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 def download_pdf(request):
     file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
-    
+
     if os.path.exists(file_path):
-        return FileResponse(open(file_path, 'rb'), content_type='application/pdf', filename='generated_pdf.pdf')
+        try:
+            with open(file_path, 'rb') as f:
+                response = FileResponse(f, content_type='application/pdf', filename='generated_pdf.pdf')
+            return response
+        except Exception as e:
+            logger.exception(f"Error al leer el archivo PDF para descarga: {e}")
+            return HttpResponseServerError("Error al leer el archivo PDF para descarga")
     else:
+        logger.error(f"Archivo PDF no encontrado en: {file_path}")
         return HttpResponseNotFound("File not found")
-    
