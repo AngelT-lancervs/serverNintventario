@@ -212,9 +212,11 @@ def upload_pdf(request):
             }, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
+        # Verificar si la excepción tiene un código de estado asociado
+        error_code = getattr(e, 'code', None)  # Asumimos que 'code' es el atributo del error
         return JsonResponse({
-            "error": "Ocurrió un error inesperado",
-            "exception": str(e)
+            "error": "Ocurrió un error inesperadoO",
+            "exception": str(e),  # Incluye el mensaje de la excepción
             "error_code": error_code,  # Código de estado si está disponible
             "request_id": request_id
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
