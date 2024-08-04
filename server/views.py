@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+import traceback
 
 
 UPLOAD_DIR = 'uploads'
@@ -212,15 +213,14 @@ def upload_pdf(request):
             }, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
-        # Verificar si la excepción tiene un código de estado asociado
-        error_code = getattr(e, 'code', None)  # Asumimos que 'code' es el atributo del error
+        # Captura cualquier excepción inesperada y proporciona detalles de la traza
+        tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
         return JsonResponse({
-            "error": "Ocurrió un error inesperadoO",
-            "exception": str(e),  # Incluye el mensaje de la excepción
-            "error_code": error_code,  # Código de estado si está disponible
+            "error": "Ocurrió un error inesperadoYAA",
+            "exception": str(e),  # Mensaje de la excepción
+            "traceback": ''.join(tb_str),  # Traza completa del error
             "request_id": request_id
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 
