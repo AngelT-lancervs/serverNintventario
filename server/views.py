@@ -181,7 +181,10 @@ def upload_pdf(request):
 
         # Verificar si el script se ejecutó correctamente
         if result.returncode != 0:
-            return JsonResponse({"error": f"Script error: {result.stderr}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({
+                "error": "Error al ejecutar el script para generar el PDF",
+                "details": result.stderr
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Verificar si el archivo PDF fue generado
         if os.path.exists(output_file_path):
@@ -197,12 +200,25 @@ def upload_pdf(request):
                 response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
                 return response
             else:
-                return JsonResponse({"error": f"Upload failed with status {upload_response.status_code}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return JsonResponse({
+                    "error": "Error al subir el archivo PDF",
+                    "upload_status_code": upload_response.status_code,
+                    "upload_response": upload_response.text
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return JsonResponse({"error": "PDF file not found"}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({
+                "error": "Archivo PDF no encontrado",
+                "expected_path": output_file_path
+            }, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({
+            "error": "Ocurrió un error inesperado",
+            "exception": str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 @api_view(['GET'])
 def download_pdf(request):
