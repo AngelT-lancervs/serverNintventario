@@ -168,15 +168,24 @@ def download_excel(request):
         return HttpResponseNotFound("File not found")
     
 
+# Configurar el logger para depuración
+logger = logging.getLogger(__name__)
+
 @api_view(['POST'])
 def upload_pdf(request):
     request_id = str(uuid.uuid4())  # Generar un ID único para esta solicitud
+    logger.debug(f"Request ID: {request_id} - Inicio del método upload_pdf.")
+
     try:
         if not os.path.exists(UPLOAD_DIR):
             os.makedirs(UPLOAD_DIR)
-            
+            logger.debug(f"Request ID: {request_id} - Directorio {UPLOAD_DIR} creado.")
+        
         output_file_path = os.path.join(UPLOAD_DIR, 'generated_pdf.pdf')
+        logger.debug(f"Request ID: {request_id} - Ruta de salida del PDF: {output_file_path}")
+
         # Ejecutar el script de Python para generar el PDF
+        logger.debug(f"Request ID: {request_id} - Ejecutando el script para generar el PDF.")
         result = subprocess.run(
             ['python', PYTHON_SCRIPT_PATH_PDF, output_file_path],
             capture_output=True, text=True
@@ -184,44 +193,50 @@ def upload_pdf(request):
 
         # Verificar si el script se ejecutó correctamente
         if result.returncode != 0:
+            logger.error(f"Request ID: {request_id} - Error en el script: {result.stderr}")
             return JsonResponse({
                 "error": "Error al ejecutar el script para generar el PDF",
                 "details": result.stderr
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        logger.debug(f"Request ID: {request_id} - Script ejecutado correctamente.")
 
         # Verificar si el archivo PDF fue generado
         if os.path.exists(output_file_path):
+            logger.debug(f"Request ID: {request_id} - Archivo PDF generado en {output_file_path}.")
             with open(output_file_path, 'rb') as f:
                 file_data = f.read()
 
             # Subir el archivo al servidor
+            logger.debug(f"Request ID: {request_id} - Subiendo el archivo PDF al servidor.")
             upload_response = requests.post(UPLOAD_URL_PDF, files={'file': file_data})
             upload_response.raise_for_status()  
 
             if upload_response.status_code == 200:
+                logger.debug(f"Request ID: {request_id} - Archivo PDF subido correctamente.")
                 response = HttpResponse(file_data, content_type='application/pdf')
                 response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
                 return response
             else:
+                logger.error(f"Request ID: {request_id} - Error al subir el archivo PDF: {upload_response.text}")
                 return JsonResponse({
                     "error": "Error al subir el archivo PDF",
                     "upload_status_code": upload_response.status_code,
                     "upload_response": upload_response.text
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
+            logger.error(f"Request ID: {request_id} - Archivo PDF no encontrado en {output_file_path}.")
             return JsonResponse({
                 "error": "Archivo PDF no encontrado",
                 "expected_path": output_file_path
             }, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
+        logger.exception(f"Request ID: {request_id} - Ocurrió un error inesperado: {str(e)}")
         return JsonResponse({
             "error": "Ocurrió un error inesperado",
             "exception": str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
 
 @api_view(['GET'])
 def download_pdf(request):
