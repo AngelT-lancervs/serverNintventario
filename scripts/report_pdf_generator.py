@@ -78,7 +78,7 @@ try:
     # Generar el archivo PDF
     doc.build(elements)
     print(f"Archivo PDF guardado en: {file_path}")
-    sys.exit(0)
+    sys.exit(1)
 
 except requests.RequestException as e:
     print(f"Error al descargar el archivo JSON: {e}")
