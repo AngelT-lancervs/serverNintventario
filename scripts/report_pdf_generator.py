@@ -29,7 +29,7 @@ try:
     # Filtrar los productos que cumplen con los criterios
     filtered_products = [
         product for product in products
-        if (product.get('stock_inicial', 0) != product.get('stock_final', 0)) or (product.get('estado', '') == 'unchecked')
+        if (product.get('stock_inicial', 0) != product.get('stock_final', 0)) or (product.get('state', '') == 'unchecked')
     ]
 
     # Crear un nuevo archivo PDF
@@ -49,16 +49,37 @@ try:
 
     # Productos revisados
     checked_products = [
-        product for product in filtered_products if product.get('estado', '') == 'checked'
+        product for product in filtered_products if product.get('state', '') == 'checked'
     ]
     # Productos no revisados
     unchecked_products = [
-        product for product in filtered_products if product.get('estado', '') == 'unchecked'
+        product for product in filtered_products if product.get('state', '') == 'unchecked'
     ]
 
-    elements.append(Paragraph("Productos Revisados", title_style))
-    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
+    def create_table(data, table_title):
+        elements.append(Paragraph(table_title, title_style))
+        elements.append(Paragraph(" ", styles['Normal']))  # Espacio
 
+        # Ajuste para cada fila
+        formatted_data = [
+            [Paragraph(cell, table_data_style) if isinstance(cell, str) else cell for cell in row]
+            for row in data
+        ]
+
+        table = Table(formatted_data, colWidths=[1 * inch, 2.5 * inch, 1 * inch, 1 * inch, 1.5 * inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONT', (0, 1), (-1, -1), 'Helvetica')
+        ]))
+        elements.append(table)
+
+    # Datos para productos revisados
     checked_data = [
         ["Código", "Nombre", "Stock Inicial", "Stock Final", "Estado"]
     ]
@@ -68,26 +89,11 @@ try:
             product.get('nombre', 'N/A'),
             product.get('stock_inicial', 'N/A'),
             product.get('stock_final', 'N/A'),
-            product.get('estado', 'N/A')
+            product.get('state', 'N/A')
         ])
+    create_table(checked_data, "Productos Revisados")
 
-    checked_table = Table(checked_data, colWidths=[1.5 * inch] * 5)
-    checked_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONT', (0, 1), (-1, -1), 'Helvetica'),
-        ('WORDWRAP', (1, 1), (-1, -1), True)  # Permite el ajuste del texto largo
-    ]))
-    elements.append(checked_table)
-
-    elements.append(Paragraph("Productos No Revisados", title_style))
-    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
-
+    # Datos para productos no revisados
     unchecked_data = [
         ["Código", "Nombre", "Stock Inicial", "Stock Final", "Estado"]
     ]
@@ -97,22 +103,9 @@ try:
             product.get('nombre', 'N/A'),
             product.get('stock_inicial', 'N/A'),
             product.get('stock_final', 'N/A'),
-            product.get('estado', 'N/A')
+            product.get('state', 'N/A')
         ])
-
-    unchecked_table = Table(unchecked_data, colWidths=[1.5 * inch] * 5)
-    unchecked_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONT', (0, 1), (-1, -1), 'Helvetica'),
-        ('WORDWRAP', (1, 1), (-1, -1), True)  # Permite el ajuste del texto largo
-    ]))
-    elements.append(unchecked_table)
+    create_table(unchecked_data, "Productos No Revisados")
 
     # Productos con diferencia en el stock
     stock_diff_products = [
@@ -120,9 +113,7 @@ try:
         if product.get('stock_inicial', 0) != product.get('stock_final', 0)
     ]
 
-    elements.append(Paragraph("Productos con Diferencia de Stock", title_style))
-    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
-
+    # Datos para productos con diferencia en el stock
     stock_diff_data = [
         ["Código", "Nombre", "Stock Inicial", "Stock Final", "Estado"]
     ]
@@ -132,22 +123,9 @@ try:
             product.get('nombre', 'N/A'),
             product.get('stock_inicial', 'N/A'),
             product.get('stock_final', 'N/A'),
-            product.get('estado', 'N/A')
+            product.get('state', 'N/A')
         ])
-
-    stock_diff_table = Table(stock_diff_data, colWidths=[1.5 * inch] * 5)
-    stock_diff_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONT', (0, 1), (-1, -1), 'Helvetica'),
-        ('WORDWRAP', (1, 1), (-1, -1), True)  # Permite el ajuste del texto largo
-    ]))
-    elements.append(stock_diff_table)
+    create_table(stock_diff_data, "Productos con Diferencia de Stock")
 
     # Generar el archivo PDF
     doc.build(elements)
