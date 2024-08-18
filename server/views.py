@@ -47,7 +47,7 @@ def register(request):
         serializer.save()
 
         user=User.objects.get(username=serializer.data['username'])
-        user.set_password(serializer.data['password'])
+        user.set_password(serializer.data['passwor'])
         user.save()
 
         token = Token.objects.create(user=user)
