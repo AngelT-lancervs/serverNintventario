@@ -5,6 +5,7 @@ import os
 import subprocess
 import uuid
 from django.http import FileResponse, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseServerError, JsonResponse
+from numpy import generic
 import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -34,6 +35,12 @@ def login(request):
     serializer=UserSerializer(instance=user)
     return Response({"Token": token.key, "user": serializer.data}, status=status.HTTP_200_OK)
 
+class UserListView(generic.ListAPIView):
+    """
+    Vista que maneja la solicitud GET para listar todos los usuarios.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 @api_view(['POST'])
