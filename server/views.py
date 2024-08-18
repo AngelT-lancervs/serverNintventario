@@ -38,7 +38,7 @@ def login(request):
     return Response({"Token": token.key, "user": serializer.data}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-def login(request):
+def list_user(request):
     """
     Vista que maneja la solicitud GET para listar todos los usuarios.
     """
