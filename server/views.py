@@ -42,8 +42,14 @@ def list_user(request):
     """
     Vista que maneja la solicitud GET para listar todos los usuarios.
     """
+    # Obtiene todos los usuarios
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+
+    # Serializa el queryset
+    serializer = UserSerializer(queryset, many=True)
+
+    # Retorna la respuesta serializada
+    return Response(serializer.data)
 
 
 @api_view(['POST'])
