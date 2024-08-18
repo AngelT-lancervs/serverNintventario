@@ -37,7 +37,8 @@ def login(request):
     serializer=UserSerializer(instance=user)
     return Response({"Token": token.key, "user": serializer.data}, status=status.HTTP_200_OK)
 
-class UserListView(generic.ListAPIView):
+@api_view(['GET'])
+def login(request):
     """
     Vista que maneja la solicitud GET para listar todos los usuarios.
     """
